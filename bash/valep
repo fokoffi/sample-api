@@ -1,0 +1,55 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          valep
+# Required-Start:    
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts and stops the Raspberry Radio
+# Description:       Starts and stops the Raspberry Radio
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+set -e
+
+# Set PYTHONPATH
+export PYTHONPATH='/usr/local/tools/builds'
+
+# Must be a valid filename
+NAME=valep
+PIDFILE=/var/run/$NAME.pid
+LOG=/var/log/valapi.log
+#This is the command to be run, give the full pathname
+DAEMON=/usr/local/tools/builds/valapi/endpoint.py
+DAEMON_OPTS="8000"
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+case "$1" in
+  start)
+        echo -n "Starting daemon: "$NAME
+        start-stop-daemon --make-pidfile --background --start --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS >> $LOG 2>&1
+        echo "."
+        ;;
+  stop)
+        echo -n "Stopping daemon: "$NAME
+        start-stop-daemon --stop --oknodo --pidfile $PIDFILE >> $LOG 2>&1
+        echo "."
+        ;;
+  restart)
+        echo -n "Restarting daemon: "$NAME
+        start-stop-daemon --stop  --oknodo --retry 30 --pidfile $PIDFILE  >> $LOG 2>&1
+        start-stop-daemon --make-pidfile --background --start --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS  >> $LOG 2>&1
+        echo "."
+        ;;
+
+  *)
+        echo "Usage: "$1" {start|stop|restart}"
+        exit 1
+esac
+
+exit 0
